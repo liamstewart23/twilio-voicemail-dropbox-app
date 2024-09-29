@@ -6,7 +6,6 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "kunalvarma05/dropbox-php-sdk": "^0.5.0",
         "laravel/framework": "^11.9",
         "laravel/tinker": "^2.9",
         "rap2hpoutre/laravel-log-viewer": "^2.4",
