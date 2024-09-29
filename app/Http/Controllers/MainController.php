@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Twilio\Exceptions\ConfigurationException;
 use Twilio\Rest\Client;
 use Twilio\TwiML\VoiceResponse;
@@ -19,11 +19,13 @@ class MainController extends Controller
      */
     public function init(){
         $response = new VoiceResponse();
-        $response->say('Please leave a message for Natasha and Liam at the beep, you have 60 seconds. Press the star key when finished.');
+        $response->say('Please leave a message for Natasha and Liam at the beep. Press the star key when finished.');
         $response->record(['maxLength' => 60, 'finishOnKey' => '*','action'=> getenv('BASE_URL').'/save-voicemail', 'method' => 'GET']);
-        $response->say('I did not receive a recording');
+//        $response->say('I did not receive a recording');
 
         echo $response;
+
+        $response->stop();
     }
 
     /**
@@ -60,17 +62,15 @@ class MainController extends Controller
 
         $response->stop();
 
+        $name = Carbon::now() . '_' . $request->CallSid . '_' . $request->RecordingSid . '.wav';
 
-        Log::info($request->all());
-        try {
-            $name = Carbon::now() . '_' . $request->Caller. '_' . $request->CallSid . '_' . $request->RecordingSid . '.wav';
-            $response = Http::get($request->RecordingUrl);
-            if ($response->successful()) {
-                file_put_contents('voicemails/'.$name, $response->body());
-            }
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            throw new Exception($e->getMessage());
+        // create directory
+        if (!file_exists('voicemails/'.$request->Caller)) {
+            mkdir('voicemails/'.$request->Caller, 0777, true);
         }
+
+        file_put_contents( 'voicemails/'.$request->Caller.'/'.$name, $request->RecordingUrl );
+
     }
+
 }
